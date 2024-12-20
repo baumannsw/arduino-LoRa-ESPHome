@@ -5,7 +5,7 @@
 #define LORA_H
 
 #include <Arduino.h>
-#include "esphome/components/spi/spi.h"
+#include <SPI.h>
 
 #if defined(ARDUINO_SAMD_MKRWAN1300)
 #define LORA_DEFAULT_SPI SPI1
@@ -145,12 +145,13 @@ private:
   // void SPIClass::end()
   void (*_spi_end)();
 
+//enable
   // void SPIClass::beginTransaction(SPISettings settings)
   void (*_spi_beginTransaction)(SPISettings settings);
-
+//disable
   // void SPIClass::endTransaction()
   void (*_spi_endTransaction)();
-
+//transfer_byte
   // uint8_t SPIClass::transfer(uint8_t data)
   uint8_t (*_spi_transfer)(uint8_t data);
 };
