@@ -108,11 +108,13 @@ int LoRaClass::begin(long frequency)
   digitalWrite(LORA_RESET, HIGH);
   delay(50);
 #endif
-
-  // setup pins
-  pinMode(_ss, OUTPUT);
-  // set SS high
-  digitalWrite(_ss, HIGH);
+  if (_spi_begin == nullptr)
+  {
+    // setup pins
+    pinMode(_ss, OUTPUT);
+    // set SS high
+    digitalWrite(_ss, HIGH);
+  }
 
   if (_reset != -1)
   {
@@ -933,9 +935,9 @@ uint8_t LoRaClass::singleTransfer(uint8_t address, uint8_t value)
     _spi_beginTransaction(_spiSettings);
   }
 
-  digitalWrite(_ss, LOW);
   if (_spi_transfer == nullptr)
   {
+    digitalWrite(_ss, LOW);
     _spi->transfer(address);
   }
   else
@@ -946,13 +948,16 @@ uint8_t LoRaClass::singleTransfer(uint8_t address, uint8_t value)
   if (_spi_transfer == nullptr)
   {
     response = _spi->transfer(value);
+      digitalWrite(_ss, HIGH);
   }
   else
   {
     response = _spi_transfer(address);
   }
-
-  digitalWrite(_ss, HIGH);
+  if (_spi_begin == nullptr)
+  {
+ 
+  }
 
   if (_spi_endTransaction == nullptr)
   {
