@@ -1,7 +1,7 @@
 // Copyright (c) Sandeep Mistry. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-#include <LoRa.h>
+#include "LoRa.h"
 
 // registers
 #define REG_FIFO                 0x00
@@ -73,7 +73,7 @@
 
 LoRaClass::LoRaClass() :
   _spiSettings(LORA_DEFAULT_SPI_FREQUENCY, MSBFIRST, SPI_MODE0),
-  _spi(&LORA_DEFAULT_SPI),
+  _spi(),
   _ss(LORA_DEFAULT_SS_PIN), _reset(LORA_DEFAULT_RESET_PIN), _dio0(LORA_DEFAULT_DIO0_PIN),
   _frequency(0),
   _packetIndex(0),
@@ -121,7 +121,7 @@ int LoRaClass::begin(long frequency)
   }
 
   // start SPI
-  _spi->begin();
+  _spi->enable();
 
   // check version
   uint8_t version = readRegister(REG_VERSION);
@@ -160,7 +160,7 @@ void LoRaClass::end()
   sleep();
 
   // stop SPI
-  _spi->end();
+  _spi->disable();
 }
 
 int LoRaClass::beginPacket(int implicitHeader)
@@ -700,7 +700,8 @@ void LoRaClass::setPins(int ss, int reset, int dio0)
   _dio0 = dio0;
 }
 
-void LoRaClass::setSPI(SPIClass& spi)
+void LoRaClass::setSPI(esphome::spi::SPIDevice<esphome::spi::BIT_ORDER_MSB_FIRST, esphome::spi::CLOCK_POLARITY_LOW,
+                                                     esphome::spi::CLOCK_PHASE_LEADING, esphome::spi::DATA_RATE_200KHZ>& spi)
 {
   _spi = &spi;
 }
@@ -782,12 +783,12 @@ uint8_t LoRaClass::singleTransfer(uint8_t address, uint8_t value)
 {
   uint8_t response;
 
-  _spi->beginTransaction(_spiSettings);
+  _spi->enable();
   digitalWrite(_ss, LOW);
-  _spi->transfer(address);
-  response = _spi->transfer(value);
+  _spi->write_byte(address);
+  response = _spi->read_byte();
   digitalWrite(_ss, HIGH);
-  _spi->endTransaction();
+  _spi->disable();
 
   return response;
 }

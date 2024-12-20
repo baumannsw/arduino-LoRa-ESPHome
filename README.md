@@ -1,4 +1,7 @@
-# Arduino LoRa
+# Arduino LoRa For ESPHome Components
+
+This fork was created to use ESPHome's SPIDevice class instead of directly calling SPIClass found in SPI.h
+
 
 [![Build Status](https://travis-ci.org/sandeepmistry/arduino-LoRa.svg?branch=master)](https://travis-ci.org/sandeepmistry/arduino-LoRa)
 
@@ -47,7 +50,7 @@ An [Arduino](https://arduino.cc/) library for sending and receiving data using [
 
 ```sh
 cd ~/Documents/Arduino/libraries/
-git clone https://github.com/sandeepmistry/arduino-LoRa LoRa
+git clone https://github.com/baumannsw/arduino-LoRa-ESPHome.git
 ```
 
 ## API
