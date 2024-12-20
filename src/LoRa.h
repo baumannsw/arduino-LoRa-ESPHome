@@ -8,30 +8,31 @@
 #include "esphome/components/spi/spi.h"
 
 #if defined(ARDUINO_SAMD_MKRWAN1300)
-#define LORA_DEFAULT_SPI           SPI1
+#define LORA_DEFAULT_SPI SPI1
 #define LORA_DEFAULT_SPI_FREQUENCY 200000
-#define LORA_DEFAULT_SS_PIN        LORA_IRQ_DUMB
-#define LORA_DEFAULT_RESET_PIN     -1
-#define LORA_DEFAULT_DIO0_PIN      -1
+#define LORA_DEFAULT_SS_PIN LORA_IRQ_DUMB
+#define LORA_DEFAULT_RESET_PIN -1
+#define LORA_DEFAULT_DIO0_PIN -1
 #elif defined(ARDUINO_SAMD_MKRWAN1310)
-#define LORA_DEFAULT_SPI           SPI1
+#define LORA_DEFAULT_SPI SPI1
 #define LORA_DEFAULT_SPI_FREQUENCY 200000
-#define LORA_DEFAULT_SS_PIN        LORA_IRQ_DUMB
-#define LORA_DEFAULT_RESET_PIN     -1
-#define LORA_DEFAULT_DIO0_PIN      LORA_IRQ
+#define LORA_DEFAULT_SS_PIN LORA_IRQ_DUMB
+#define LORA_DEFAULT_RESET_PIN -1
+#define LORA_DEFAULT_DIO0_PIN LORA_IRQ
 #else
-#define LORA_DEFAULT_SPI           esphome::spi::SPIDevice<esphome::spi::BIT_ORDER_MSB_FIRST, esphome::spi::CLOCK_POLARITY_LOW, esphome::spi::CLOCK_PHASE_LEADING, esphome::spi::DATA_RATE_200KHZ>
-#define LORA_DEFAULT_SPI_FREQUENCY 8E6 
-#define LORA_DEFAULT_SS_PIN        10
-#define LORA_DEFAULT_RESET_PIN     9
-#define LORA_DEFAULT_DIO0_PIN      2
+#define LORA_DEFAULT_SPI SPI
+#define LORA_DEFAULT_SPI_FREQUENCY 8E6
+#define LORA_DEFAULT_SS_PIN 10
+#define LORA_DEFAULT_RESET_PIN 9
+#define LORA_DEFAULT_DIO0_PIN 2
 
 #endif
 
-#define PA_OUTPUT_RFO_PIN          0
-#define PA_OUTPUT_PA_BOOST_PIN     1
+#define PA_OUTPUT_RFO_PIN 0
+#define PA_OUTPUT_PA_BOOST_PIN 1
 
-class LoRaClass : public Stream {
+class LoRaClass : public Stream
+{
 public:
   LoRaClass();
 
@@ -59,9 +60,15 @@ public:
   virtual void flush();
 
 #ifndef ARDUINO_SAMD_MKRWAN1300
-  void onReceive(void(*callback)(int));
-  void onCadDone(void(*callback)(boolean));
-  void onTxDone(void(*callback)());
+  void onReceive(void (*callback)(int));
+  void onCadDone(void (*callback)(boolean));
+  void onTxDone(void (*callback)());
+
+  void onSPI_begin(void (*callback)());
+  void onSPI_end(void (*callback)());
+  void onSPI_beginTransaction(void (*callback)(SPISettings settings));
+  void onSPI_EndTransaction(void (*callback)());
+  void onSPI_transfer(uint8_t (*callback)(uint8_t));
 
   void receive(int size = 0);
   void channelActivityDetection(void);
@@ -82,9 +89,9 @@ public:
   void disableInvertIQ();
   void enableLowDataRateOptimize();
   void disableLowDataRateOptimize();
-  
+
   void setOCP(uint8_t mA); // Over Current Protection control
-  
+
   void setGain(uint8_t gain); // Set LNA gain
 
   // deprecated
@@ -94,11 +101,10 @@ public:
   byte random();
 
   void setPins(int ss = LORA_DEFAULT_SS_PIN, int reset = LORA_DEFAULT_RESET_PIN, int dio0 = LORA_DEFAULT_DIO0_PIN);
-  void setSPI(esphome::spi::SPIDevice<esphome::spi::BIT_ORDER_MSB_FIRST, esphome::spi::CLOCK_POLARITY_LOW,
-                                                     esphome::spi::CLOCK_PHASE_LEADING, esphome::spi::DATA_RATE_200KHZ>& spi);
+  void setSPI(SPIClass& spi);
   void setSPIFrequency(uint32_t frequency);
 
-  void dumpRegisters(Stream& out);
+  void dumpRegisters(Stream &out);
 
 private:
   void explicitHeaderMode();
@@ -121,8 +127,7 @@ private:
 
 private:
   SPISettings _spiSettings;
-  esphome::spi::SPIDevice<esphome::spi::BIT_ORDER_MSB_FIRST, esphome::spi::CLOCK_POLARITY_LOW,
-                                                     esphome::spi::CLOCK_PHASE_LEADING, esphome::spi::DATA_RATE_200KHZ>* _spi;
+  SPIClass *_spi;
   int _ss;
   int _reset;
   int _dio0;
@@ -132,6 +137,22 @@ private:
   void (*_onReceive)(int);
   void (*_onCadDone)(boolean);
   void (*_onTxDone)();
+  // custom SPI functions
+
+  // void SPIClass::begin()
+  void (*_spi_begin)();
+
+  // void SPIClass::end()
+  void (*_spi_end)();
+
+  // void SPIClass::beginTransaction(SPISettings settings)
+  void (*_spi_beginTransaction)(SPISettings settings);
+
+  // void SPIClass::endTransaction()
+  void (*_spi_endTransaction)();
+
+  // uint8_t SPIClass::transfer(uint8_t data)
+  uint8_t (*_spi_transfer)(uint8_t data);
 };
 
 extern LoRaClass LoRa;
